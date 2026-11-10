@@ -121,3 +121,4 @@ git remote add origin https://github.com/사용자아이디/저장소이름.git
 # 5. GitHub에 업로드
 git push -u origin main
 ```
+

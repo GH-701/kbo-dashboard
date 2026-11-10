@@ -157,3 +157,4 @@ def get_team_info(team_key_or_name: str) -> dict:
     if key and key in KBO_TEAMS:
         return KBO_TEAMS[key]
     return KBO_TEAMS["KIA"]
+

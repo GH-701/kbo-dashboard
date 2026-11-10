@@ -10,7 +10,7 @@ venv/
 ENV/
 
 # Streamlit
-.streamlit/
+.streamlit/secrets.toml
 
 # OS and IDE
 .DS_Store
@@ -24,3 +24,4 @@ scratch/
 
 # Sensitive credentials
 .env
+
