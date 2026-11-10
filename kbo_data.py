@@ -9,9 +9,23 @@ kbo_data.py - KBO 한국프로야구 실시간 데이터 크롤링 및 파싱 �
 import requests
 from bs4 import BeautifulSoup
 import datetime
+import os
+import json
 import re
 from typing import List, Dict, Any, Optional
 from kbo_teams import KBO_TEAMS, resolve_team_key
+
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
+def load_cached_data(filename: str):
+    path = os.path.join(DATA_DIR, filename)
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f).get("data", None)
+        except Exception:
+            return None
+    return None
 
 DEFAULT_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -70,6 +84,11 @@ def fetch_kbo_standings() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"[WARN] fetch_kbo_standings error: {e}")
 
+    # 캐시된 최신 파일 확인
+    cached = load_cached_data("standings.json")
+    if cached:
+        return cached
+
     # fallback 반환
     result = []
     for item in FALLBACK_STANDINGS:
@@ -117,6 +136,11 @@ def fetch_kbo_news(query: str = "KBO 프로야구") -> List[Dict[str, str]]:
                     break
     except Exception as e:
         print(f"[WARN] fetch_kbo_news error: {e}")
+
+    # 캐시된 최신 파일 확인
+    cached_news = load_cached_data("news.json")
+    if cached_news:
+        return cached_news
 
     # 최소 안전 반환 뉴스
     if not articles:

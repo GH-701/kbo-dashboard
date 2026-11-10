@@ -1,19 +1,28 @@
-name: KBO Daily Baseball Notification
+name: KBO Auto Updater & Daily Notification
 
 on:
   schedule:
-    # 매일 한국 시간 기준 오전 9시 (UTC 00:00), 오후 9시 (UTC 12:00) 자동 실행
-    - cron: '0 0 * * *'
-    - cron: '0 12 * * *'
-  workflow_dispatch: # GitHub 웹에서 수동으로 [Run workflow] 버튼을 눌러 즉시 실행 가능
+    # 매일 한국 시간 기준 오전 6시 (UTC 21:00), 오후 6시 (UTC 09:00), 밤 10시 (UTC 13:00) 3회 자동 실행
+    - cron: '0 21 * * *'
+    - cron: '0 9 * * *'
+    - cron: '0 13 * * *'
+  workflow_dispatch: # GitHub 웹 Actions 탭에서 [Run workflow] 버튼으로 즉시 수동 실행 가능
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write # GitHub Actions가 data/ 파일을 commit & push할 수 있는 권한
 
 jobs:
-  kbo-briefing:
+  update-kbo-data:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,10 +35,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run KBO Daily Briefing
+      - name: Update KBO Live Data
+        run: |
+          python kbo_updater.py
+
+      - name: Commit and Push Updated Data
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/
+          if git diff --staged --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "chore(auto): KBO 최신 야구 데이터 자동 갱신 [skip ci]"
+            git push origin main
+          fi
+
+      - name: Send Telegram Notification
+        if: env.TELEGRAM_BOT_TOKEN != ''
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python send_daily_briefing.py
-
