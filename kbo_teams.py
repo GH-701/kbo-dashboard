@@ -1,8 +1,8 @@
 """
-kbo_teams.py - KBO 10개 구단 및 홈구장 상세 정보
+kbo_teams.py - KBO 10개 구단 및 홈구장 상세 정보 (공식 웹사이트, 유튜브, 굿즈샵 포함)
 """
 
-# 각 팀의 한국어 명칭, 대표 컬러, 홈구장 및 공식 정보
+# 각 팀의 한국어 명칭, 대표 컬러, 홈구장, 공식 사이트, 유튜브 채널 및 굿즈샵 정보
 KBO_TEAMS = {
     "KIA": {
         "name_full": "KIA 타이거즈",
@@ -13,6 +13,8 @@ KBO_TEAMS = {
         "stadium_name": "광주-기아 챔피언스 필드",
         "stadium_address": "광주광역시 북구 서림로 10 (임동)",
         "website": "https://tigers.co.kr/",
+        "youtube": "https://www.youtube.com/@kiatigerstv",
+        "shop": "https://www.tigersshop.kr/",
         "lat": 35.168128,
         "lon": 126.889104,
         "outfield": {"left": 99, "center": 121, "right": 99, "fence_height": 2.6}
@@ -26,6 +28,8 @@ KBO_TEAMS = {
         "stadium_name": "대구 삼성 라이온즈 파크",
         "stadium_address": "대구광역시 수성구 야구전설로 1 (연호동)",
         "website": "https://www.samsunglions.com/",
+        "youtube": "https://www.youtube.com/@lionstv1982",
+        "shop": "https://samsunglionsmall.com/",
         "lat": 35.841170,
         "lon": 128.681534,
         "outfield": {"left": 99.5, "center": 122.5, "right": 99.5, "fence_height": 3.6}
@@ -39,6 +43,8 @@ KBO_TEAMS = {
         "stadium_name": "서울종합운동장 야구장 (잠실)",
         "stadium_address": "서울특별시 송파구 올림픽로 25 (잠실동)",
         "website": "https://www.lgtwins.com/",
+        "youtube": "https://www.youtube.com/@LGTwinsTV",
+        "shop": "https://www.lgtwinsshop.com/",
         "lat": 37.512257,
         "lon": 127.071901,
         "outfield": {"left": 100, "center": 125, "right": 100, "fence_height": 2.6}
@@ -52,6 +58,8 @@ KBO_TEAMS = {
         "stadium_name": "서울종합운동장 야구장 (잠실)",
         "stadium_address": "서울특별시 송파구 올림픽로 25 (잠실동)",
         "website": "https://www.doosanbears.com/",
+        "youtube": "https://www.youtube.com/@bearstv",
+        "shop": "https://www.wefan.co.kr/",
         "lat": 37.512257,
         "lon": 127.071901,
         "outfield": {"left": 100, "center": 125, "right": 100, "fence_height": 2.6}
@@ -65,6 +73,8 @@ KBO_TEAMS = {
         "stadium_name": "수원 케이티 위즈 파크",
         "stadium_address": "경기도 수원시 장안구 경수대로 893 (조원동)",
         "website": "https://www.ktwiz.co.kr/",
+        "youtube": "https://www.youtube.com/@ktwiztv",
+        "shop": "https://www.ktwizstore.co.kr/",
         "lat": 37.299710,
         "lon": 127.009703,
         "outfield": {"left": 95, "center": 120, "right": 95, "fence_height": 4.0}
@@ -78,6 +88,8 @@ KBO_TEAMS = {
         "stadium_name": "인천 SSG 랜더스필드",
         "stadium_address": "인천광역시 미추홀구 매소홀로 618 (문학동)",
         "website": "https://www.ssglanders.com/",
+        "youtube": "https://www.youtube.com/@ssglanderstv",
+        "shop": "https://ssglandersstore.com/",
         "lat": 37.437042,
         "lon": 126.693262,
         "outfield": {"left": 95, "center": 120, "right": 95, "fence_height": 2.4}
@@ -91,6 +103,8 @@ KBO_TEAMS = {
         "stadium_name": "부산 사직 야구장",
         "stadium_address": "부산광역시 동래구 사직로 45 (사직동)",
         "website": "https://www.giantsclub.com/",
+        "youtube": "https://www.youtube.com/@giants_tv",
+        "shop": "https://www.lottegiantsshop.com/",
         "lat": 35.194032,
         "lon": 129.061518,
         "outfield": {"left": 95, "center": 120.5, "right": 95, "fence_height": 6.0}
@@ -104,6 +118,8 @@ KBO_TEAMS = {
         "stadium_name": "대전 한화생명 이글스파크",
         "stadium_address": "대전광역시 중구 대종로 373 (부사동)",
         "website": "https://www.hanwhaeagles.co.kr/",
+        "youtube": "https://www.youtube.com/@eaglestv",
+        "shop": "https://eagles.lockerdium.com/",
         "lat": 36.317070,
         "lon": 127.429134,
         "outfield": {"left": 100, "center": 122, "right": 100, "fence_height": 4.0}
@@ -117,6 +133,8 @@ KBO_TEAMS = {
         "stadium_name": "창원 NC 파크",
         "stadium_address": "경상남도 창원시 마산회원구 삼호로 63 (양덕동)",
         "website": "https://www.ncdinos.com/",
+        "youtube": "https://www.youtube.com/@ncdinos",
+        "shop": "https://shop.ncdinos.com/",
         "lat": 35.222533,
         "lon": 128.582375,
         "outfield": {"left": 101, "center": 122, "right": 101, "fence_height": 3.3}
@@ -130,6 +148,8 @@ KBO_TEAMS = {
         "stadium_name": "서울 고척 스카이돔",
         "stadium_address": "서울특별시 구로구 경인로 430 (고척동)",
         "website": "https://www.heroesbaseball.co.kr/",
+        "youtube": "https://www.youtube.com/@heroestv",
+        "shop": "https://interpark.com/",
         "lat": 37.498233,
         "lon": 126.867107,
         "outfield": {"left": 99, "center": 122, "right": 99, "fence_height": 4.0}
@@ -157,4 +177,3 @@ def get_team_info(team_key_or_name: str) -> dict:
     if key and key in KBO_TEAMS:
         return KBO_TEAMS[key]
     return KBO_TEAMS["KIA"]
-

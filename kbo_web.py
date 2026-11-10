@@ -582,8 +582,10 @@ with tab4:
             <p><b>펜스 거리:</b> 좌/우 {stadium_cfg['left_m']}m, 중앙 {stadium_cfg['center_m']}m</p>
             <p><b>주소:</b> {stadium_cfg['address']}</p>
             <p style="font-size:0.9rem; color:#666; margin-top:12px;">{stadium_cfg['features']}</p>
-            <div style="margin-top:18px;">
-                <a href="{team_cfg['website']}" target="_blank" style="display:inline-block; padding:8px 16px; background:{team_cfg['color_primary']}; color:white; border-radius:8px; text-decoration:none; font-weight:700;">공식 웹사이트 바로가기 →</a>
+            <div style="margin-top:18px; display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="{team_cfg['website']}" target="_blank" style="display:inline-block; padding:8px 14px; background:{team_cfg['color_primary']}; color:white; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.85rem;">🌐 공식 웹사이트</a>
+                <a href="{team_cfg.get('youtube', 'https://youtube.com')}" target="_blank" style="display:inline-block; padding:8px 14px; background:#e11d48; color:white; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.85rem;">📺 공식 유튜브</a>
+                <a href="{team_cfg.get('shop', '#')}" target="_blank" style="display:inline-block; padding:8px 14px; background:#059669; color:white; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.85rem;">🛍️ 굿즈/티켓샵</a>
             </div>
         </div>
         """
