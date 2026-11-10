@@ -514,8 +514,9 @@ with tab3:
             st.markdown("##### 📋 세부 스탯 비교표")
             compare_rows = []
             for c in ["포지션", "타율", "홈런", "타점", "안타", "도루", "출루율", "장타율", "OPS"]:
-                v1 = p1_info[c]
-                v2 = p2_info[c]
+                key_c = "pos" if c == "포지션" else c
+                v1 = p1_info.get(key_c, "-")
+                v2 = p2_info.get(key_c, "-")
                 if isinstance(v1, float):
                     v1_str = f"{v1:.3f}"
                     v2_str = f"{v2:.3f}"
