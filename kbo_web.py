@@ -9,6 +9,8 @@ import kbo_teams
 from kbo_teams import KBO_TEAMS, resolve_team_key, get_team_info
 import kbo_data
 import kbo_stadiums
+import kbo_players
+from kbo_players import KBO_BATTERS, KBO_PITCHERS
 
 # 웹사이트 기본 설정
 st.set_page_config(
@@ -305,61 +307,252 @@ with tab2:
 # [탭 3] 선수 상세 기록
 # ==========================================
 with tab3:
-    st.subheader("🏃‍♂️ KBO 선수 상세 순위 및 통계")
-    
-    stat_type = st.radio("포지션 부문 선택", ["타자 부문 TOP 10", "투수 부문 TOP 10"], horizontal=True)
-    
-    if stat_type == "타자 부문 TOP 10":
-        batters_data = kbo_data.fetch_top_batters()
-        st.markdown("#### 🏏 KBO 역대 최고 타율 TOP 10")
-        df_batters = pd.DataFrame(batters_data)
-        st.dataframe(df_batters, use_container_width=True, hide_index=True)
-        
-        # 상위 5명 바 차트 시각화
-        df_top5 = df_batters.head(5).copy()
-        df_top5['기록_num'] = pd.to_numeric(df_top5['기록'], errors='coerce')
-        fig_bar = go.Figure(go.Bar(
-            x=df_top5['선수명'] + " (" + df_top5['팀명'] + ")",
-            y=df_top5['기록_num'],
-            marker_color='#ea0029',
-            text=df_top5['기록'],
-            textposition='auto'
-        ))
-        fig_bar.update_layout(
-            title="KBO 역대 타율 상위 5걸",
-            yaxis_title="타율 (AVG)",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color="#f8fafc" if st.session_state['dark_mode'] else "#1e293b"),
-            height=320
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+    st.subheader("🏃‍♂️ KBO 10개 구단 선수 상세 기록 및 능력치 비교")
 
-    else:
-        pitchers_data = kbo_data.fetch_top_pitchers()
-        st.markdown("#### ⚾ KBO 역대 최다승 투수 TOP 10")
-        df_pitchers = pd.DataFrame(pitchers_data)
-        st.dataframe(df_pitchers, use_container_width=True, hide_index=True)
-        
-        # 상위 5명 바 차트
-        df_top5_p = df_pitchers.head(5).copy()
-        df_top5_p['기록_num'] = pd.to_numeric(df_top5_p['기록'], errors='coerce')
-        fig_bar_p = go.Figure(go.Bar(
-            x=df_top5_p['선수명'] + " (" + df_top5_p['팀명'] + ")",
-            y=df_top5_p['기록_num'],
-            marker_color='#0066b3',
-            text=df_top5_p['기록'] + "승",
-            textposition='auto'
-        ))
-        fig_bar_p.update_layout(
-            title="KBO 단일 시즌 최다승 투수 상위 5걸",
-            yaxis_title="승리 수 (W)",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color="#f8fafc" if st.session_state['dark_mode'] else "#1e293b"),
-            height=320
-        )
-        st.plotly_chart(fig_bar_p, use_container_width=True)
+    sub_tab1, sub_tab2, sub_tab3 = st.tabs([
+        "👥 구단별 선수 명단 및 성적",
+        "📊 선수 스탯 비교 시뮬레이터 (Radar)",
+        "🏆 KBO 역대 레전드 TOP 10"
+    ])
+
+    # ----------------------------------------------------
+    # [서브탭 1] 10개 구단별 선수 명단 및 성적
+    # ----------------------------------------------------
+    with sub_tab1:
+        st.markdown("#### 10개 구단별 대표 타자 및 투수 라인업")
+        col_team_filter, col_pos_filter = st.columns([1, 1])
+        with col_team_filter:
+            team_filter_options = ["전체 10개 구단"] + list(KBO_TEAMS.keys())
+            selected_team_filter = st.selectbox(
+                "구단 선택",
+                options=team_filter_options,
+                format_func=lambda x: f"{KBO_TEAMS[x]['name_full']}" if x != "전체 10개 구단" else "전체 10개 구단 (모든 선수)"
+            )
+        with col_pos_filter:
+            pos_choice = st.radio("포지션 선택", ["타자 (Hitter)", "투수 (Pitcher)"], horizontal=True)
+
+        if pos_choice == "타자 (Hitter)":
+            batters_list = []
+            for k, v in KBO_BATTERS.items():
+                if selected_team_filter == "전체 10개 구단" or v["team"] == selected_team_filter:
+                    batters_list.append({
+                        "선수명": v["name"],
+                        "구단": KBO_TEAMS.get(v["team"], {}).get("name_full", v["team"]),
+                        "포지션": v["pos"],
+                        "타율 (AVG)": f"{v['타율']:.3f}",
+                        "홈런 (HR)": v["홈런"],
+                        "타점 (RBI)": v["타점"],
+                        "안타 (H)": v["안타"],
+                        "도루 (SB)": v["도루"],
+                        "출루율 (OBP)": f"{v['출루율']:.3f}",
+                        "장타율 (SLG)": f"{v['장타율']:.3f}",
+                        "OPS": f"{v['OPS']:.3f}"
+                    })
+            df_filtered_batters = pd.DataFrame(batters_list)
+            st.dataframe(df_filtered_batters, use_container_width=True, hide_index=True)
+
+            # 상위 홈런 타자 바 차트
+            if not df_filtered_batters.empty:
+                df_hr_top = df_filtered_batters.sort_values(by="홈런 (HR)", ascending=False).head(8)
+                fig_hr = go.Figure(go.Bar(
+                    x=df_hr_top["선수명"] + " (" + df_hr_top["구단"] + ")",
+                    y=df_hr_top["홈런 (HR)"],
+                    marker_color="#ea0029",
+                    text=df_hr_top["홈런 (HR)"].astype(str) + "개",
+                    textposition='auto'
+                ))
+                fig_hr.update_layout(
+                    title="선택된 구단 홈런 순위",
+                    yaxis_title="홈런 수",
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color="#f8fafc" if st.session_state['dark_mode'] else "#1e293b"),
+                    height=300
+                )
+                st.plotly_chart(fig_hr, use_container_width=True)
+
+        else: # 투수
+            pitchers_list = []
+            for k, v in KBO_PITCHERS.items():
+                if selected_team_filter == "전체 10개 구단" or v["team"] == selected_team_filter:
+                    pitchers_list.append({
+                        "선수명": v["name"],
+                        "구단": KBO_TEAMS.get(v["team"], {}).get("name_full", v["team"]),
+                        "보직": v["role"],
+                        "평균자책점 (ERA)": f"{v['ERA']:.2f}",
+                        "승리 (W)": v["승"],
+                        "패배 (L)": v["패"],
+                        "세이브 (SV)": v["세이브"],
+                        "홀드 (HLD)": v["홀드"],
+                        "이닝 (IP)": v["이닝"],
+                        "탈삼진 (SO)": v["탈삼진"],
+                        "WHIP": f"{v['WHIP']:.2f}"
+                    })
+            df_filtered_pitchers = pd.DataFrame(pitchers_list)
+            st.dataframe(df_filtered_pitchers, use_container_width=True, hide_index=True)
+
+            # 평균자책점 바 차트
+            if not df_filtered_pitchers.empty:
+                df_era_top = df_filtered_pitchers.sort_values(by="평균자책점 (ERA)", ascending=True).head(8)
+                fig_era = go.Figure(go.Bar(
+                    x=df_era_top["선수명"] + " (" + df_era_top["구단"] + ")",
+                    y=pd.to_numeric(df_era_top["평균자책점 (ERA)"]),
+                    marker_color="#0066b3",
+                    text=df_era_top["평균자책점 (ERA)"],
+                    textposition='auto'
+                ))
+                fig_era.update_layout(
+                    title="선택된 구단 평균자책점(ERA) 순위 (낮을수록 우수)",
+                    yaxis_title="ERA",
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color="#f8fafc" if st.session_state['dark_mode'] else "#1e293b"),
+                    height=300
+                )
+                st.plotly_chart(fig_era, use_container_width=True)
+
+    # ----------------------------------------------------
+    # [서브탭 2] 선수 스탯 비교 시뮬레이터 (Radar Chart)
+    # ----------------------------------------------------
+    with sub_tab2:
+        st.markdown("#### 📊 KBO 대표 타자 스탯 비교 시뮬레이터")
+        st.caption("구단별 대표 타자 2명을 선택하여 6대 핵심 지표(타율, 홈런, 타점, 안타, 출루율, 장타율)를 레이더 차트로 직접 비교해보세요.")
+
+        col_sim1, col_sim2 = st.columns(2)
+        with col_sim1:
+            st.markdown("##### 👤 첫 번째 타자")
+            sim_team1 = st.selectbox("구단 필터 (타자 1)", options=["전체"] + list(KBO_TEAMS.keys()), key="sim_team1")
+            candidates1 = [k for k, v in KBO_BATTERS.items() if (sim_team1 == "전체" or v["team"] == sim_team1)]
+            player1_key = st.selectbox("선수 선택 (타자 1)", options=candidates1, index=0, key="sim_p1")
+
+        with col_sim2:
+            st.markdown("##### 👤 두 번째 타자")
+            sim_team2 = st.selectbox("구단 필터 (타자 2)", options=["전체"] + list(KBO_TEAMS.keys()), index=2 if len(KBO_TEAMS) > 2 else 0, key="sim_team2")
+            candidates2 = [k for k, v in KBO_BATTERS.items() if (sim_team2 == "전체" or v["team"] == sim_team2)]
+            def_idx = 1 if len(candidates2) > 1 else 0
+            player2_key = st.selectbox("선수 선택 (타자 2)", options=candidates2, index=def_idx, key="sim_p2")
+
+        p1_info = KBO_BATTERS[player1_key]
+        p2_info = KBO_BATTERS[player2_key]
+
+        # 6대 지표 정규화 (0~100 스케일)
+        # 지표 최대 기준: 타율 0.400, 홈런 50, 타점 140, 안타 210, 출루율 0.460, 장타율 0.700
+        METRIC_SPECS = {
+            "타율": {"max": 0.400, "unit": ""},
+            "홈런": {"max": 50, "unit": "개"},
+            "타점": {"max": 140, "unit": "점"},
+            "안타": {"max": 210, "unit": "개"},
+            "출루율": {"max": 0.460, "unit": ""},
+            "장타율": {"max": 0.700, "unit": ""}
+        }
+
+        cats = list(METRIC_SPECS.keys())
+        cats_closed = cats + [cats[0]]
+
+        def norm_val(val, cat):
+            mx = METRIC_SPECS[cat]["max"]
+            return min(100.0, max(0.0, (val / mx) * 100.0))
+
+        p1_r = [norm_val(p1_info[c], c) for c in cats] + [norm_val(p1_info[cats[0]], cats[0])]
+        p2_r = [norm_val(p2_info[c], c) for c in cats] + [norm_val(p2_info[cats[0]], cats[0])]
+
+        p1_hover = [f"{c}: {p1_info[c]}{METRIC_SPECS[c]['unit']}" for c in cats] + [f"{cats[0]}: {p1_info[cats[0]]}"]
+        p2_hover = [f"{c}: {p2_info[c]}{METRIC_SPECS[c]['unit']}" for c in cats] + [f"{cats[0]}: {p2_info[cats[0]]}"]
+
+        col_radar_chart, col_radar_table = st.columns([1.2, 1])
+
+        with col_radar_chart:
+            fig_radar = go.Figure()
+
+            # Player 1 Radar
+            fig_radar.add_trace(go.Scatterpolar(
+                r=p1_r,
+                theta=cats_closed,
+                fill='toself',
+                name=player1_key,
+                hoverinfo='text',
+                text=p1_hover,
+                line=dict(color=p1_info["color"], width=3),
+                fillcolor=p1_info["color"],
+                opacity=0.35
+            ))
+
+            # Player 2 Radar
+            fig_radar.add_trace(go.Scatterpolar(
+                r=p2_r,
+                theta=cats_closed,
+                fill='toself',
+                name=player2_key,
+                hoverinfo='text',
+                text=p2_hover,
+                line=dict(color=p2_info["color"], width=3),
+                fillcolor=p2_info["color"],
+                opacity=0.35
+            ))
+
+            text_c = "#f8fafc" if st.session_state['dark_mode'] else "#0f172a"
+            grid_c = "#334155" if st.session_state['dark_mode'] else "#cbd5e1"
+            bg_c = "rgba(30, 41, 59, 0.4)" if st.session_state['dark_mode'] else "rgba(241, 245, 249, 0.5)"
+
+            fig_radar.update_layout(
+                polar=dict(
+                    radialaxis=dict(visible=True, range=[0, 100], showticklabels=False, gridcolor=grid_c),
+                    angularaxis=dict(gridcolor=grid_c, tickfont=dict(size=12, color=text_c)),
+                    bgcolor=bg_c
+                ),
+                showlegend=True,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
+                font=dict(color=text_c),
+                legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+                height=420,
+                margin=dict(t=30, b=40, l=40, r=40)
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
+
+        with col_radar_table:
+            st.markdown("##### 📋 세부 스탯 비교표")
+            compare_rows = []
+            for c in ["포지션", "타율", "홈런", "타점", "안타", "도루", "출루율", "장타율", "OPS"]:
+                v1 = p1_info[c]
+                v2 = p2_info[c]
+                if isinstance(v1, float):
+                    v1_str = f"{v1:.3f}"
+                    v2_str = f"{v2:.3f}"
+                    diff_sym = "◀ 우세" if v1 > v2 else ("우세 ▶" if v2 > v1 else "=")
+                elif isinstance(v1, int):
+                    v1_str = str(v1)
+                    v2_str = str(v2)
+                    diff_sym = "◀ 우세" if v1 > v2 else ("우세 ▶" if v2 > v1 else "=")
+                else:
+                    v1_str = str(v1)
+                    v2_str = str(v2)
+                    diff_sym = "-"
+
+                compare_rows.append({
+                    "지표": c,
+                    f"{p1_info['name']} ({p1_info['team']})": v1_str,
+                    "비교": diff_sym,
+                    f"{p2_info['name']} ({p2_info['team']})": v2_str
+                })
+            df_compare = pd.DataFrame(compare_rows)
+            st.dataframe(df_compare, use_container_width=True, hide_index=True)
+
+    # ----------------------------------------------------
+    # [서브탭 3] KBO 역대 레전드 TOP 10
+    # ----------------------------------------------------
+    with sub_tab3:
+        st.markdown("#### 🏆 KBO 리그 역대 최고 기록 TOP 10")
+        stat_choice = st.radio("역대 기록 부문", ["역대 최고 타율 TOP 10", "단일시즌 최다승 투수 TOP 10"], horizontal=True)
+
+        if stat_choice == "역대 최고 타율 TOP 10":
+            b_data = kbo_data.fetch_top_batters()
+            df_b = pd.DataFrame(b_data)
+            st.dataframe(df_b, use_container_width=True, hide_index=True)
+        else:
+            p_data = kbo_data.fetch_top_pitchers()
+            df_p = pd.DataFrame(p_data)
+            st.dataframe(df_p, use_container_width=True, hide_index=True)
 
 # ==========================================
 # [탭 4] 구장 및 구단 안내
