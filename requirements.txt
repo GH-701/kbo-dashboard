@@ -1,0 +1,10 @@
+streamlit
+beautifulsoup4
+requests
+folium
+streamlit-folium
+plotly
+python-telegram-bot
+geopy
+shapely
+pandas

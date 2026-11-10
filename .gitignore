@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Streamlit
+.streamlit/
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs and Scratch
+scratch/
+*.log
+
+# Sensitive credentials
+.env
